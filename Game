@@ -1,0 +1,465 @@
+import javafx.animation.AnimationTimer;
+import javafx.application.*;
+import javafx.stage.Stage;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.control.Label;
+
+public class App extends Application {
+    static Pane menuLayout = new Pane();
+    // create menu scene
+    static Scene menuScene = new Scene(menuLayout, 800, 600);
+    // create game scene
+    static Pane gameLayout = new Pane();
+    static Scene gamepScene = new Scene(gameLayout, 800, 600);
+    // create help scene
+    static Pane helpLayout = new Pane();
+    static Scene helpScene = new Scene(helpLayout, 800, 600);
+    // create endA scene which is the scene that the player sees when they win. End
+    // A is for player 1 winning
+    static Pane endAlayout = new Pane();
+    static Scene endAscene = new Scene(endAlayout, 800, 600);
+
+    // create endB scene which is the scene that the player sees when they win. End
+    // B is for player 2 winning
+    static Pane endBlayout = new Pane();
+    static Scene endBscene = new Scene(endBlayout, 800, 600);
+
+    // creates a boolean for checking if the game is ended
+    static boolean endGame = false;
+    // creates a variable for when player 1 wins the game
+    int end1 = 0;
+    // creates a variable for when player 2 wins the game
+    int end2 = 0;
+
+    static AnimationTimer gameLoop;
+
+    // creates doubles for the X and Y speed of player 1
+    static double plyrSpeedX = 100;
+    static double plyrSpeedY = 100;
+
+    // creates doubles for the X and Y speed of player 2
+    static double plyrSpeed2X = 100;
+    static double plyrSpeed2Y = 100;
+
+    
+    static int score1 = 0;
+    static int score2 = 0;
+    static boolean gamePaused = false;
+    static int enemyX = (int) (Math.random() * (640 - 150 + 1) + 150);
+    static int enemyY = (int) (Math.random() * (450 - 150 + 1) + 150);
+    static int enemy2X = (int) (Math.random() * (640 - 150 + 1) + 150);
+    static int enemy2Y = (int) (Math.random() * (450 - 150 + 1) + 150);
+    static int foodSize = (int) (Math.random() * (4 - 1) + 1);
+    double enemySpeed = 3.333;
+
+    static int direction = 0, direction2 = 0;
+
+    public static void main(String[] args) throws Exception {
+        launch(args);
+    }
+
+    @Override
+    public void start(Stage mainWindow) {
+        // add help button to layout manager for menu scene
+        Button helpButton = new Button("Help");
+        menuLayout.getChildren().add(helpButton);
+        helpButton.setMinWidth(100);
+
+        // add back button to layout manager for menu scene
+        Button backButton = new Button("Back");
+        helpLayout.getChildren().add(backButton);
+        backButton.setMinWidth(100);
+        backButton.setLayoutX(25);
+        backButton.setLayoutY(25);
+
+        // add start button to layout manager for menu scene
+        Button startButton = new Button("Start");
+        menuLayout.getChildren().add(startButton);
+        startButton.setMinWidth(100);
+
+        // add resume button for pause menu
+        Button resumeButton = new Button("Resume");
+        resumeButton.setMinWidth(100);
+        resumeButton.setLayoutX(350);
+        resumeButton.setLayoutY(300);
+
+        // add exit button for pause menu
+        Button exitButton = new Button("Exit");
+        exitButton.setMinWidth(100);
+        exitButton.setLayoutX(350);
+        exitButton.setLayoutY(350);
+
+        //add the title text
+        Text title = new Text();
+        String text = "Hungry Blocks";
+        title.setText(text);
+        title.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        title.setX(330);
+        title.setY(200);
+        menuLayout.getChildren().add(title);
+
+        //add the controls/help text
+        Text help = new Text();
+        String help2 = "Player 1: [W] [A] [S] [D] to turn.\n\nPlayer 2: [Up] [Down] [Left] [Right] keys to turn.\n\nPress [P] or [ESC] to pause the game.\n\nRules:\nMove ove the circles with the blocks to gain 1-3 \npoints randomly\nFirst player to 50 points wins";
+        help.setText(help2);
+        help.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        help.setX(100);
+        help.setY(200);
+        helpLayout.getChildren().add(help);
+
+        //add the paused text
+        Text paused = new Text();
+        String paused2 = "Paused";
+        paused.setText(paused2);
+        paused.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        paused.setX(355);
+        paused.setY(250);
+
+        //add the game over text for player A
+        Text gameOver = new Text();
+        gameOver.setText("GAME OVER");
+        gameOver.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        gameOver.setX(325);
+        gameOver.setY(250);
+        endAlayout.getChildren().add(gameOver);
+
+        //add the game over text for player B
+        Text gameOver2 = new Text();
+        gameOver2.setText("GAME OVER");
+        gameOver2.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        gameOver2.setX(325);
+        gameOver2.setY(250);
+        endBlayout.getChildren().add(gameOver2);
+
+        //add the Player A text
+        Text PAW = new Text();
+        PAW.setText("Player A (RED) WINS!");
+        PAW.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        PAW.setX(270);
+        PAW.setY(300);
+        endAlayout.getChildren().add(PAW);
+
+        //add the player B text
+        Text PBW = new Text();
+        PBW.setText("Player B (BLUE) WINS!");
+        PBW.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        PBW.setX(270);
+        PBW.setY(300);
+        endBlayout.getChildren().add(PBW);
+
+        //add the restart game text for end A
+        Text LINE = new Text();
+        LINE.setText("Close program and press F5 to play again");
+        LINE.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        LINE.setX(175);
+        LINE.setY(350);
+        endAlayout.getChildren().add(LINE);
+
+        //add the restart game text for end B
+        Text PINE = new Text();
+        PINE.setText("Close program and press F5 to play again");
+        PINE.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        PINE.setX(175);
+        PINE.setY(350);
+        endBlayout.getChildren().add(PINE);
+
+        // create player object and add to layout for game scene
+        // rectangle at 100,50 of size 50x50
+        Rectangle boundary = new Rectangle(25, 25, 750, 550);
+        boundary.setFill(Color.SLATEGREY);
+        boundary.setStroke(Color.BLACK);
+        gameLayout.getChildren().add(boundary);
+
+        // the "food"
+        Circle enemy = new Circle(enemyX, enemyY, 10);
+        enemy.setFill(Color.YELLOW);
+        gameLayout.getChildren().add(enemy);
+
+        // Circle enemy2 = new Circle(enemy2X, enemy2Y, 20);
+        // enemy2.setFill(Color.GREEN);
+        // gameLayout.getChildren().add(enemy2);
+
+        //add the first players rectangle
+        Rectangle player1 = new Rectangle(650, 250, 50, 50);
+        player1.setFill(Color.MAROON);
+        player1.setStroke(Color.BLACK);
+        gameLayout.getChildren().add(player1);
+
+        //add the second players rectange
+        Rectangle player2 = new Rectangle(100, 250, 50, 50);
+        player2.setFill(Color.DARKBLUE);
+        player2.setStroke(Color.BLACK);
+        gameLayout.getChildren().add(player2);
+
+        // players 1 score
+        Label player1score = new Label();
+        player1score.setText("Player 1: " + score1);
+        player1score.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        player1score.setLayoutX(600);
+        player1score.setLayoutY(25);
+        gameLayout.getChildren().add(player1score);
+
+        //player 2 score
+        Label player2score = new Label();
+        player2score.setText("Player 2: " + score2);
+        player2score.setFont(Font.font("verdana", FontWeight.BOLD, FontPosture.REGULAR, 20));
+        player2score.setLayoutX(600);
+        player2score.setLayoutY(50);
+        gameLayout.getChildren().add(player2score);
+
+        mainWindow.setScene(menuScene);
+        mainWindow.show();
+
+        // move button to horizontal
+
+        helpButton.relocate(400 - (helpButton.getWidth() / 2), 300);
+        startButton.relocate(400 - (startButton.getWidth() / 2), 250);
+
+        gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long nanoTime) {
+                // code in here is running as long as the animation timer is active
+
+                switch (direction) {
+                    //switch statement to get the rectangles/players to move and not be able to stop
+                case 1:
+                    player1.setTranslateX(player1.getTranslateX() + plyrSpeedX / 20);
+                    break;
+                case 2:
+                    player1.setTranslateX(player1.getTranslateX() - plyrSpeedX / 20);
+                    break;
+                case 3:
+                    player1.setTranslateY(player1.getTranslateY() + plyrSpeedY / 20);
+                    break;
+                case 4:
+                    player1.setTranslateY(player1.getTranslateY() - plyrSpeedY / 20);
+                    break;
+                default:
+
+                }
+
+                switch (direction2) {
+                    //same code above for the second player
+                case 1:
+                    player2.setTranslateX(player2.getTranslateX() + plyrSpeed2X / 20);
+                    break;
+                case 2:
+                    player2.setTranslateX(player2.getTranslateX() - plyrSpeed2X / 20);
+                    break;
+                case 3:
+                    player2.setTranslateY(player2.getTranslateY() + plyrSpeed2Y / 20);
+                    break;
+                case 4:
+                    player2.setTranslateY(player2.getTranslateY() - plyrSpeed2Y / 20);
+                    break;
+                default:
+                }
+
+                // if(enemy.getBoundsInParent().getMaxY() >= 600){
+                // enemy.setTranslateY(enemy.getTranslateY() + enemySpeed);
+                // }
+                // else {
+                // enemy.setTranslateY(0 - enemyY);
+                // }
+
+                    //collision code to add a random amount of points from 1-3 when player 1 touches the "food"/circle
+                if (enemy.getBoundsInParent().intersects(player1.getBoundsInParent())) {
+                    foodSize = (int) (Math.random() * (4 - 1) + 1);
+                    score1 += foodSize;
+                    end1 = score1;
+                    player1score.setText("Player 1: " + score1);
+                    System.out.println(score1);
+                    enemy.relocate((int) (Math.random() * (640 - 150 + 1) + 150),
+                            (int) (Math.random() * (450 - 150 + 1) + 150));
+                }
+                    //same code as above but for second player
+                if (enemy.getBoundsInParent().intersects(player2.getBoundsInParent())) {
+                    foodSize = (int) (Math.random() * (4 - 1) + 1);
+                    score2 += foodSize;
+                    end2 = score2;
+                    player2score.setText("Player 2: " + score2);
+                    enemy.relocate((int) (Math.random() * (640 - 150 + 1) + 150),
+                            (int) (Math.random() * (450 - 150 + 1) + 150));
+                }
+
+                // if(enemy2.getBoundsInParent().intersects(player1.getBoundsInParent())){
+                // score1 += 2;
+                // player1score.setText("Player 1: " + score1);
+                // enemy2.relocate((int)(Math.random() * (640 - 150 + 1) + 150),
+                // (int)(Math.random() * (450 - 150 + 1) + 150));
+                // }
+                // if(enemy2.getBoundsInParent().intersects(player2.getBoundsInParent())){
+                // score2 += 2;
+                // player2score.setText("Player 2: " + score2);
+                // enemy2.relocate((int)(Math.random() * (640 - 150 + 1) + 150),
+                // (int)(Math.random() * (450 - 150 + 1) + 150));
+                // }
+
+                //stops players from exiting the "arena" by setting their x and y speed to zero if they touch the borders
+                if (player1.getBoundsInParent().getMaxY() > 573) {
+
+                    plyrSpeedY = 0;
+                }
+
+                if (player2.getBoundsInParent().getMaxY() > 573) {
+
+                    plyrSpeed2Y = 0;
+                }
+
+                if (player1.getBoundsInParent().getMinY() < 25) {
+
+                    plyrSpeedY = 0;
+                }
+
+                if (player2.getBoundsInParent().getMinY() < 25) {
+
+                    plyrSpeed2Y = 0;
+                }
+
+                if (player1.getBoundsInParent().getMaxX() > 773) {
+
+                    plyrSpeedX = 0;
+                }
+
+                if (player2.getBoundsInParent().getMaxX() > 773) {
+
+                    plyrSpeed2X = 0;
+                }
+
+                if (player1.getBoundsInParent().getMinX() < 25) {
+
+                    plyrSpeedX = 0;
+                }
+
+                if (player2.getBoundsInParent().getMinX() < 25) {
+
+                    plyrSpeed2X = 0;
+                }
+
+                //the code to switch the scnese to the end scene if either player 1 or 2 reaches 50 points
+                if (endGame == false) {
+                    if (score1 >= 50) {
+                        System.out.println(score1);
+                        mainWindow.setScene(endAscene);
+                        endGame = true;
+                    } else if (score2 >= 50) {
+                        mainWindow.setScene(endBscene);
+                        endGame = true;
+                    }
+                }
+
+            }
+
+        };
+        //code for the start button
+        startButton.addEventHandler(MouseEvent.MOUSE_CLICKED, (event) -> {
+            mainWindow.setScene(gamepScene);
+            gameLoop.start();
+
+        });
+
+        //code for the help button
+        helpButton.setOnMouseClicked((event) -> {
+            mainWindow.setScene(helpScene);
+        });
+        //code for the back button
+        backButton.setOnMouseClicked((event) -> {
+            mainWindow.setScene(menuScene);
+        });
+        //code for the resume button
+        resumeButton.setOnMouseClicked((event) -> {
+            gameLayout.getChildren().remove(paused);
+            gameLayout.getChildren().remove(resumeButton);
+            gameLayout.getChildren().remove(exitButton);
+            gamePaused = false;
+        });
+        //code for the exit button
+        exitButton.setOnMouseClicked((event) -> {
+            mainWindow.setScene(menuScene);
+            gameLayout.getChildren().remove(paused);
+            gameLayout.getChildren().remove(resumeButton);
+            gameLayout.getChildren().remove(exitButton);
+            gamePaused = false;
+        });
+        //code for the players movement buttons (makes the player move by increasing the x and y speed of the player, and then inputs it into the other switch statement to make them move in that direction)
+        gamepScene.setOnKeyPressed((event) -> {
+            switch (event.getCode()) {
+
+            case RIGHT:
+                if (gamePaused == false) {
+                    direction = 1;
+                    plyrSpeedX = 60;
+                }
+                break;
+            case LEFT:
+                if (gamePaused == false) {
+                    direction = 2;
+                    plyrSpeedX = 60;
+                }
+                break;
+            case DOWN:
+                if (gamePaused == false) {
+                    direction = 3;
+                    plyrSpeedY = 60;
+                }
+                break;
+            case UP:
+                if (gamePaused == false) {
+                    direction = 4;
+                    plyrSpeedY = 60;
+                }
+                break;
+            case D:
+                if (gamePaused == false) {
+                    direction2 = 1;
+                    plyrSpeed2X = 60;
+                }
+                break;
+            case A:
+                if (gamePaused == false) {
+                    direction2 = 2;
+                    plyrSpeed2X = 60;
+                }
+                break;
+            case S:
+                if (gamePaused == false) {
+                    direction2 = 3;
+                    plyrSpeed2Y = 60;
+                }
+                break;
+            case W:
+                if (gamePaused == false) {
+                    direction2 = 4;
+                    plyrSpeed2Y = 60;
+                }
+                break;
+            case P:
+            //code for the pause menu when user clicks escape
+            case ESCAPE:
+                gamePaused = true;
+
+                plyrSpeedX = 0;
+                plyrSpeedY = 0;
+                plyrSpeed2X = 0;
+                plyrSpeed2Y = 0;
+
+                gameLayout.getChildren().add(paused);
+                gameLayout.getChildren().add(resumeButton);
+                gameLayout.getChildren().add(exitButton);
+                break;
+            default:
+            }
+        });
+
+    }
+}
